@@ -37,7 +37,6 @@ local function zar_extract(data)
   magic = string.char(table.unpack(magic))
   if magic ~= "ZAR" then return false end
   local fileCount = u32_to_number(table_sub(data, 4, 7))
-  print("File count: " .. fileCount)
   local offset = 8
   local files = {}
   for i=1,fileCount do
