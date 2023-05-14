@@ -19,21 +19,19 @@ end
 -- copy_recursive for more info. Mid is internally used to add the path to the
 -- output file of recursed directories.
 local function _copy_recursive(from, to, verbose, maxDepth, mid)
-  -- Remove /path/to/from/ from the output file
-  local baseToRemove
-  if fs.isDir(from) then
-    baseToRemove = from
-  else
+  -- Remove /path/to/from/ from the input file
+  local baseToRemove = from
+  if not fs.isDir(from) then
     baseToRemove = fs.getDir(from)
   end
 
+  local retVal = true
+
   for _, path in pairs(fs.find(from .. "/*")) do
-    -- Cut off the first part of the path
-    local toPath = path:sub(#baseToRemove + 1, -1)
-    -- Add recursed directory path
-    toPath = mid .. "/" .. toPath
+    -- Cut off the first part of the path and add the recursed directory path
+    local newMid = mid .. "/" .. path:sub(#baseToRemove + 1, -1)
     -- Add in the path to copy to
-    toPath = to .. "/" .. toPath
+    local toPath = to .. "/" .. newMid
     -- Keep copying if we haven't hit our maxDepth yet
     if fs.isDir(path) and maxDepth ~= 0 then
       -- Make a directory for the recursed files inside
@@ -47,7 +45,7 @@ local function _copy_recursive(from, to, verbose, maxDepth, mid)
         newDepth = -1
       end
       -- And recurse further
-      return _copy_recursive(path, to, newDepth, baseDropped)
+      retVal = _copy_recursive(path, to, newDepth, newMid) and retVal
     else
       if fs.exists(toPath) and not fs.isDir(toPath) then
         if verbose then
@@ -56,7 +54,7 @@ local function _copy_recursive(from, to, verbose, maxDepth, mid)
         fs.delete(toPath)
       elseif fs.exists(toPath) then
         print("error: could not copy file `" .. path .. "` to `" .. toPath .. "`: cannot delete directories")
-        return false
+        retVal = false
       end
       if not (fs.isDir(path) and maxDepth == 0) then
         if verbose then
@@ -66,7 +64,7 @@ local function _copy_recursive(from, to, verbose, maxDepth, mid)
       end
     end
   end
-  return true
+  return retVal
 end
 
 -- Copies files recursively. If verbose is true (defaults to true), prints each
