@@ -66,16 +66,18 @@ local function _copy_recursive(from, to, verbose, maxDepth, mid)
       end
     end
   end
+  return true
 end
 
 -- Copies files recursively. If verbose is true (defaults to true), prints each
 -- file name copied in the form `from/path/file -> to/path/file`. If maxDepth is
--- negative (defaults to -1), recurses infinitely.
+-- negative (defaults to -1), recurses infinitely. Returns false on failure, true
+-- on success.
 local function copy_recursive(from, to, verbose, maxDepth)
   -- Defaults
   if verbose == nil then verbose = true end
   if maxDepth == nil then maxDepth = -1 end
-  _copy_recursive(from, to, verbose, maxDepth, "")
+  return _copy_recursive(from, to, verbose, maxDepth, "")
 end
 
 -- Actual code
@@ -98,7 +100,7 @@ local zccutilsPath = disk.getMountPath(zccutilsDiskSide)
 -- copy stuff over
 copy_recursive(zccutilsPath .. "/environments/" .. env, "/")
 copy_recursive(zccutilsPath .. "/extracore/", "/extracore/")
-copy_recursive(zccutilsPath, true, 0)
+copy_recursive(zccutilsPath, "/", true, 0)
 fs.delete("/envinit.lua")
 
 -- vim:set expandtab:
